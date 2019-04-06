@@ -1,0 +1,42 @@
+{
+  "name": "codemonauts/craft-aws",
+  "description": "Plugin providing components and function to run Craft CMS in a high-available AWS environments.",
+  "version": "1.0.0",
+  "type": "craft-plugin",
+  "keywords": [
+    "craft",
+    "cms",
+    "craftcms",
+    "craft-plugin",
+    "AWS"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "codemonauts",
+      "homepage": "https://codemonauts.com"
+    }
+  ],
+  "support": {
+    "source": "https://github.com/codemonauts/craft-aws",
+    "docs": "https://github.com/codemonauts/craft-aws/blob/master/README.md",
+    "issues": "https://github.com/codemonauts/craft-aws/issues"
+  },
+  "require": {
+    "craftcms/cms": "^3.0.0",
+    "aws/aws-sdk-php": "^3.18"
+  },
+  "autoload": {
+    "psr-4": {
+      "codemonauts\\aws\\": "src/"
+    }
+  },
+  "extra": {
+    "handle": "aws",
+    "class": "codemonauts\\aws\\Aws",
+    "name": "AWS",
+    "description": "Components and functions to run Craft CMS in a high-available AWS environment.",
+    "hasCpSection": false,
+    "hasSettings": false
+  }
+}
