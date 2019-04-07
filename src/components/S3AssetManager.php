@@ -31,7 +31,7 @@ class S3AssetManager extends AssetManager
     {
         $dir = is_file($path) ? dirname($path) : $path;
         $alias = Craft::alias($dir);
-        $hash = sprintf('%x', crc32($alias));
+        $hash = $this->currentRevision . DIRECTORY_SEPARATOR . sprintf('%x', crc32($alias));
 
         try {
             Craft::$app->getDb()->createCommand()
@@ -44,8 +44,6 @@ class S3AssetManager extends AssetManager
         } catch (\Exception $e) {
             Craft::error($e->getMessage(), __METHOD__);
         }
-
-        $hash = $this->currentRevision . DIRECTORY_SEPARATOR . $hash;
 
         return $hash;
     }
