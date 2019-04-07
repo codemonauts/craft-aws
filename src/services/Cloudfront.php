@@ -12,9 +12,9 @@ class Cloudfront extends Component
      *
      * @return bool
      */
-    public function isCloudfrontRequest()
+    public function isCloudfrontRequest(): bool
     {
-        return $this->getRequestId() !== null ? true : false;
+        return $this->getRequestId() !== null;
     }
 
     /**
@@ -24,11 +24,7 @@ class Cloudfront extends Component
      */
     public function getTraceId()
     {
-        if (isset($_SERVER['HTTP_X_AMZN_TRACE_ID'])) {
-            return $_SERVER['HTTP_X_AMZN_TRACE_ID'];
-        }
-
-        return null;
+        return $_SERVER['HTTP_X_AMZN_TRACE_ID'] ?? null;
     }
 
     /**
@@ -38,11 +34,7 @@ class Cloudfront extends Component
      */
     public function getRequestId()
     {
-        if (isset($_SERVER['HTTP_X_AMZ_CF_ID'])) {
-            return $_SERVER['HTTP_X_AMZ_CF_ID'];
-        }
-
-        return null;
+        return $_SERVER['HTTP_X_AMZ_CF_ID'] ?? null;
     }
 
     /**
@@ -52,17 +44,21 @@ class Cloudfront extends Component
      *
      * @return bool
      */
-    public function isMobileBrowser($tabletAsMobile = false)
+    public function isMobileBrowser($tabletAsMobile = false): bool
     {
-        if (isset($_SERVER['HTTP_CLOUDFRONT_IS_TABLET_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_TABLET_VIEWER'] == 'true') {
-            return $tabletAsMobile ? true : false;
-        } elseif (isset($_SERVER['HTTP_CLOUDFRONT_IS_MOBILE_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_MOBILE_VIEWER'] == 'true') {
-            return true;
-        } elseif (isset($_SERVER['HTTP_CLOUDFRONT_IS_DESKTOP_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_DESKTOP_VIEWER'] == 'true') {
+        if (isset($_SERVER['HTTP_CLOUDFRONT_IS_DESKTOP_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_DESKTOP_VIEWER'] === 'true') {
             return false;
-        } else {
-            return Craft::$app->request->isMobileBrowser($tabletAsMobile);
         }
+
+        if (isset($_SERVER['HTTP_CLOUDFRONT_IS_TABLET_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_TABLET_VIEWER'] === 'true') {
+            return $tabletAsMobile ? true : false;
+        }
+
+        if (isset($_SERVER['HTTP_CLOUDFRONT_IS_MOBILE_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_MOBILE_VIEWER'] === 'true') {
+            return true;
+        }
+
+        return Craft::$app->request->isMobileBrowser($tabletAsMobile);
     }
 
     /**
@@ -70,15 +66,21 @@ class Cloudfront extends Component
      *
      * @return string
      */
-    public function getBrowserType()
+    public function getBrowserType(): string
     {
-        if (isset($_SERVER['HTTP_CLOUDFRONT_IS_SMARTTV_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_SMARTTV_VIEWER'] == 'true') {
+        if (isset($_SERVER['HTTP_CLOUDFRONT_IS_SMARTTV_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_SMARTTV_VIEWER'] === 'true') {
             return 'SmartTV';
-        } elseif (isset($_SERVER['HTTP_CLOUDFRONT_IS_DESKTOP_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_DESKTOP_VIEWER'] == 'true') {
+        }
+
+        if (isset($_SERVER['HTTP_CLOUDFRONT_IS_DESKTOP_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_DESKTOP_VIEWER'] === 'true') {
             return 'Desktop';
-        } elseif (isset($_SERVER['HTTP_CLOUDFRONT_IS_TABLET_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_TABLET_VIEWER'] == 'true') {
+        }
+
+        if (isset($_SERVER['HTTP_CLOUDFRONT_IS_TABLET_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_TABLET_VIEWER'] === 'true') {
             return 'Tablet';
-        } elseif (isset($_SERVER['HTTP_CLOUDFRONT_IS_MOBILE_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_MOBILE_VIEWER'] == 'true') {
+        }
+
+        if (isset($_SERVER['HTTP_CLOUDFRONT_IS_MOBILE_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_MOBILE_VIEWER'] === 'true') {
             return 'Mobile';
         }
 

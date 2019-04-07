@@ -11,9 +11,24 @@ use Aws\ResultPaginator;
 
 class S3 extends Component
 {
-    private $client = null;
+    /**
+     * @var S3Client The client from the SDK
+     */
+    private $client;
+
+    /**
+     * @var string The AWS access key to use, empty to use instance role
+     */
     private $key = '';
+
+    /**
+     * @var string The AWS secret
+     */
     private $secret = '';
+
+    /**
+     * @var string The AWS region to use for bucket operations
+     */
     private $region = '';
 
     /**
@@ -21,9 +36,10 @@ class S3 extends Component
      */
     public function init()
     {
-        $this->key = Aws::getInstance()->getSettings()->key;
-        $this->secret = Aws::getInstance()->getSettings()->secret;
-        $this->region = Aws::getInstance()->getSettings()->region;
+        $config = Aws::getInstance()->getSettings();
+        $this->key = $config->key;
+        $this->secret = $config->secret;
+        $this->region = $config->region;
 
         $this->client = $this->getClient();
     }
@@ -38,7 +54,7 @@ class S3 extends Component
      *
      * @return Result
      */
-    public function copyOnSameBucket($bucket, $sourceKey, $destKey, $contentType)
+    public function copyOnSameBucket($bucket, $sourceKey, $destKey, $contentType): Result
     {
         return $this->client->copyObject([
             'Bucket' => $bucket,
@@ -57,7 +73,7 @@ class S3 extends Component
      *
      * @return Result
      */
-    public function download($bucket, $key, $destination)
+    public function download($bucket, $key, $destination): Result
     {
         return $this->client->getObject([
             'Bucket' => $bucket,
@@ -76,7 +92,7 @@ class S3 extends Component
      *
      * @return Result
      */
-    public function uploadBody($bucket, $key, $body, $contentType)
+    public function uploadBody($bucket, $key, $body, $contentType): Result
     {
         return $this->client->putObject([
             'Bucket' => $bucket,
@@ -96,7 +112,7 @@ class S3 extends Component
      *
      * @return Result
      */
-    public function uploadFile($bucket, $key, $source, $contentType)
+    public function uploadFile($bucket, $key, $source, $contentType): Result
     {
         if (filesize($source) < 500000000) {
             return $this->client->putObject([
@@ -105,45 +121,45 @@ class S3 extends Component
                 'SourceFile' => $source,
                 'ContentType' => $contentType,
             ]);
-        } else {
-            $response = $this->client->createMultipartUpload([
-                'Bucket' => $bucket,
-                'Key' => $key,
-                'ContentType' => $contentType,
-            ]);
+        }
 
-            $uploadId = $response['UploadId'];
+        $response = $this->client->createMultipartUpload([
+            'Bucket' => $bucket,
+            'Key' => $key,
+            'ContentType' => $contentType,
+        ]);
 
-            $file = fopen($source, 'r');
-            $parts = [];
-            $partNumber = 1;
+        $uploadId = $response['UploadId'];
 
-            while (!feof($file)) {
-                $result = $this->client->uploadPart([
-                    'Bucket' => $bucket,
-                    'Key' => $key,
-                    'UploadId' => $uploadId,
-                    'PartNumber' => $partNumber,
-                    'Body' => fread($file, 100 * 1024 * 1024),
-                ]);
+        $file = fopen($source, 'rb');
+        $parts = [];
+        $partNumber = 1;
 
-                $parts[] = [
-                    'PartNumber' => $partNumber++,
-                    'ETag' => $result['ETag'],
-                ];
-            }
-
-            fclose($file);
-
-            return $this->client->completeMultipartUpload([
+        while (!feof($file)) {
+            $result = $this->client->uploadPart([
                 'Bucket' => $bucket,
                 'Key' => $key,
                 'UploadId' => $uploadId,
-                'MultipartUpload' => [
-                    'Parts' => $parts,
-                ],
+                'PartNumber' => $partNumber,
+                'Body' => fread($file, 100 * 1024 * 1024),
             ]);
+
+            $parts[] = [
+                'PartNumber' => $partNumber++,
+                'ETag' => $result['ETag'],
+            ];
         }
+
+        fclose($file);
+
+        return $this->client->completeMultipartUpload([
+            'Bucket' => $bucket,
+            'Key' => $key,
+            'UploadId' => $uploadId,
+            'MultipartUpload' => [
+                'Parts' => $parts,
+            ],
+        ]);
     }
 
     /**
@@ -154,7 +170,7 @@ class S3 extends Component
      *
      * @return Result
      */
-    public function delete($bucket, $key)
+    public function delete($bucket, $key): Result
     {
         return $this->client->deleteObject([
             'Bucket' => $bucket,
@@ -166,13 +182,15 @@ class S3 extends Component
      * List all objects of a bucket
      *
      * @param string $bucket The bucket to list all objects
+     * @param string $prefix Optional prefix to filter list
      *
      * @return ResultPaginator
      */
-    public function listObjects($bucket)
+    public function listObjects($bucket, $prefix = ''): ResultPaginator
     {
         return $this->client->getPaginator('ListObjects', [
             'Bucket' => $bucket,
+            'Prefix' => $prefix,
         ]);
     }
 
@@ -182,7 +200,7 @@ class S3 extends Component
      * @param string $bucket The bucket where the object is located
      * @param string $key    The key of the object
      *
-     * @return Result
+     * @return Result|bool
      */
     public function getObjectInfo($bucket, $key)
     {
@@ -201,7 +219,7 @@ class S3 extends Component
      *
      * @return S3Client
      */
-    private function getClient()
+    private function getClient(): S3Client
     {
         $config = [
             'signature' => 'v4',

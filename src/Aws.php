@@ -17,9 +17,9 @@ use craft\web\twig\variables\CraftVariable;
 /**
  * Class Aws
  *
- * @property S3 $s3 The S3 component
+ * @property S3         $s3         The S3 component
  * @property Cloudfront $cloudfront The Cloudfront component
- * @property Assets $assets The assets component
+ * @property Assets     $assets     The assets component
  *
  * @package codemonauts\aws
  */
@@ -39,29 +39,32 @@ class Aws extends Plugin
             's3' => S3::class,
         ]);
 
-        /*
-        Craft::$app->set('assetManager', function() {
-            $generalConfig = Craft::$app->getConfig()->getGeneral();
-            $config = [
-                'class' => S3AssetManager::class,
-                'basePath' => $generalConfig->resourceBasePath,
-                'baseUrl' => $generalConfig->resourceBaseUrl,
-                'appendTimestamp' => false,
-            ];
+        if (Craft::$app->request->getIsConsoleRequest()) {
+            $this->controllerNamespace = 'codemonauts\aws\console\controllers';
+        }
 
-            return Craft::createObject($config);
-        });
-        */
+        // Register new AssetManager if we should store and serve resources from a bucket
+        if (Aws::getInstance()->getSettings()->resourcesOnBucket) {
+            Craft::$app->set('assetManager', function() {
+                $config = [
+                    'class' => S3AssetManager::class,
+                ];
 
-        // Register asset thumb event
-        Event::on(\craft\services\Assets::class, \craft\services\Assets::EVENT_GET_ASSET_THUMB_URL, function(GetAssetThumbUrlEvent $e) {
-            $e->url = $this->assets->getThumbUrl(
-                $e->asset,
-                $e->width,
-                $e->height,
-                $e->generate
-            );
-        });
+                return Craft::createObject($config);
+            });
+        }
+
+        // Register asset thumb event if we should store and serve them from a bucket
+        if (self::getInstance()->getSettings()->thumbnailsOnBucket) {
+            Event::on(\craft\services\Assets::class, \craft\services\Assets::EVENT_GET_ASSET_THUMB_URL, function(GetAssetThumbUrlEvent $e) {
+                $e->url = $this->assets->getThumbUrl(
+                    $e->asset,
+                    $e->width,
+                    $e->height,
+                    $e->generate
+                );
+            });
+        }
 
         // Add variables to Twig
         Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $e) {

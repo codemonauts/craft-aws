@@ -6,16 +6,18 @@ use craft\base\Model;
 
 class Settings extends Model
 {
-    public $cpresourcesRevision = '';
-    public $cpresourcesBucket = '';
-    public $cpresourcesPrefix = '';
-    public $cpresourcesBaseUrl = '';
-
     public $key = '';
     public $secret = '';
     public $region = '';
 
-    public $thumbnailsEnabled = false;
+    public $resourcesOnBucket = false;
+    public $thumbnailsOnBucket = false;
+
+    public $resourceRevision = '';
+    public $resourceBucket = '';
+    public $resourcePrefix = '';
+    public $resourceBaseUrl = '';
+
     public $thumbnailsBucket = '';
     public $thumbnailsPrefix = '';
     public $thumbnailsBaseUrl = '';
