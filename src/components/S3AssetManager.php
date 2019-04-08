@@ -37,7 +37,7 @@ class S3AssetManager extends AssetManager
         $this->bucket = $config->resourceBucket;
 
         // Get revision
-        $revision = (string)$config->resourceRevision;
+        $revision = $config->resourceRevision;
         if (is_string($revision)) {
             $this->currentRevision = $revision;
         } elseif (is_callable($revision)) {
