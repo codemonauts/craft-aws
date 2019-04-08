@@ -2,7 +2,6 @@
 
 namespace codemonauts\aws;
 
-use codemonauts\aws\components\S3AssetManager;
 use codemonauts\aws\models\Settings;
 use codemonauts\aws\services\Assets;
 use codemonauts\aws\services\Cloudfront;
@@ -41,17 +40,6 @@ class Aws extends Plugin
 
         if (Craft::$app->request->getIsConsoleRequest()) {
             $this->controllerNamespace = 'codemonauts\aws\console\controllers';
-        }
-
-        // Register new AssetManager if we should store and serve resources from a bucket
-        if (Aws::getInstance()->getSettings()->resourcesOnBucket) {
-            Craft::$app->set('assetManager', function() {
-                $config = [
-                    'class' => S3AssetManager::class,
-                ];
-
-                return Craft::createObject($config);
-            });
         }
 
         // Register asset thumb event if we should store and serve them from a bucket

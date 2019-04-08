@@ -1,18 +1,16 @@
 <?php
 
 return [
-    'resourcesOnBucket' => false,
-    'thumbnailsOnBucket' => false,
+    'key' => '',
+    'secret' => '',
+    'region' => '',
 
     'resourceRevision' => '',
     'resourceBucket' => '',
     'resourcePrefix' => '',
     'resourceBaseUrl' => '',
 
-    'key' => '',
-    'secret' => '',
-    'region' => '',
-
+    'thumbnailsOnBucket' => false,
     'thumbnailsBucket' => '',
     'thumbnailsPrefix' => '',
     'thumbnailsBaseUrl' => '',

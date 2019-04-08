@@ -2,7 +2,7 @@
 
 namespace codemonauts\aws\components;
 
-use codemonauts\aws\Aws;
+use codemonauts\aws\traits\S3Trait;
 use Craft;
 use craft\helpers\FileHelper;
 use craft\web\AssetManager;
@@ -12,6 +12,8 @@ use yii\base\InvalidConfigException;
 
 class S3AssetManager extends AssetManager
 {
+    use S3Trait;
+
     /**
      * @var string The current revision of the resources.
      */
@@ -32,20 +34,26 @@ class S3AssetManager extends AssetManager
      */
     public function init()
     {
-        $config = Aws::getInstance()->getSettings();
+        $config = Craft::$app->getConfig()->getConfigFromFile('aws');
 
-        $this->bucket = $config->resourceBucket;
+        // Initialize S3Client
+        $this->bucket = $config['resourceBucket'];
+        $this->region = $config['region'];
+        $this->key = $config['key'];
+        $this->secret = $config['secret'];
+
+        $this->client = $this->getClient();
 
         // Get revision
-        $revision = $config->resourceRevision;
+        $revision = $config['resourceRevision'];
         if (is_string($revision)) {
             $this->currentRevision = $revision;
         } elseif (is_callable($revision)) {
             $this->currentRevision = $revision();
         }
 
-        $this->basePath = $config->resourcePrefix . $this->currentRevision;
-        $this->baseUrl = $config->resourceBaseUrl . $this->basePath;
+        $this->basePath = $config['resourcePrefix'] . $this->currentRevision;
+        $this->baseUrl = $config['resourceBaseUrl'] . $this->basePath;
 
         $this->loadPublished();
     }
@@ -55,9 +63,11 @@ class S3AssetManager extends AssetManager
      */
     protected function loadPublished()
     {
-        $results = Aws::getInstance()->s3->listObjects($this->bucket, $this->basePath);
+        // $results = Aws::getInstance()->s3->listObjects($this->bucket, $this->basePath);
 
-        $length = substr_count($this->basePath, '/') + 1;
+        $results = $this->listObjects($this->bucket, $this->basePath);
+
+        $length = substr_count($this->basePath, '/') + 2;
 
         foreach ($results as $result) {
             if (isset($result['Contents'])) {
@@ -152,7 +162,7 @@ class S3AssetManager extends AssetManager
         $dstFile = $dstDir . '/' . $fileName;
 
         if (!$this->isPublished($dstFile)) {
-            Aws::getInstance()->s3->uploadFile($this->bucket, $dstFile, $src, FileHelper::getMimeType($src));
+            $this->uploadFile($this->bucket, $dstFile, $src, FileHelper::getMimeType($src));
         }
 
         return [$dstFile, $this->baseUrl . "/$dir/$fileName"];
@@ -199,7 +209,7 @@ class S3AssetManager extends AssetManager
             }
 
             if (is_file($from)) {
-                Aws::getInstance()->s3->uploadFile($this->bucket, $to, $from, FileHelper::getMimeType($from));
+                $this->uploadFile($this->bucket, $to, $from, FileHelper::getMimeType($from));
             } else if (!isset($options['recursive']) || $options['recursive']) {
                 $this->uploadDirectory($from, $to, $options);
             }
@@ -209,5 +219,4 @@ class S3AssetManager extends AssetManager
         }
         closedir($handle);
     }
-
 }

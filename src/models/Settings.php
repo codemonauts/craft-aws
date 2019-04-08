@@ -10,14 +10,12 @@ class Settings extends Model
     public $secret = '';
     public $region = '';
 
-    public $resourcesOnBucket = false;
-    public $thumbnailsOnBucket = false;
-
     public $resourceRevision = '';
     public $resourceBucket = '';
     public $resourcePrefix = '';
     public $resourceBaseUrl = '';
 
+    public $thumbnailsOnBucket = false;
     public $thumbnailsBucket = '';
     public $thumbnailsPrefix = '';
     public $thumbnailsBaseUrl = '';
