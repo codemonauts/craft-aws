@@ -1,7 +1,19 @@
 <?php
 
 return [
-    'assetRevision' => function() {
-        return trim(file_get_contents(Craft::getAlias('@root/build.txt')));
-    },
+    'resourcesOnBucket' => false,
+    'thumbnailsOnBucket' => false,
+
+    'resourceRevision' => '',
+    'resourceBucket' => '',
+    'resourcePrefix' => '',
+    'resourceBaseUrl' => '',
+
+    'key' => '',
+    'secret' => '',
+    'region' => '',
+
+    'thumbnailsBucket' => '',
+    'thumbnailsPrefix' => '',
+    'thumbnailsBaseUrl' => '',
 ];
