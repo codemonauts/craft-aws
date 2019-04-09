@@ -23,7 +23,7 @@ class GenerateAllThumbs extends BaseJob
         $meta = Aws::getInstance()->assets->createAllThumbSizes($asset);
 
         $cachedMeta = [
-            'baseUrl' => $baseUrl . '/' . $meta['path'],
+            'baseUrl' => $baseUrl . $meta['path'],
             'ext' => $meta['ext'],
         ];
 
