@@ -31,11 +31,20 @@ class ThumbsController extends Controller
             return ExitCode::OK;
         }
 
+        if (Aws::getInstance()->getSettings()->queueMassUpdates === '') {
+            $this->stderr('No queue for mass updates set!'.PHP_EOL, Console::FG_RED);
+            return ExitCode::OK;
+        }
+
         if ($all === false && $assetId === null)
         {
             $this->stderr('You forgot to say what to do!'.PHP_EOL, Console::FG_RED);
             return ExitCode::OK;
         }
+
+        $queueComponent = Aws::getInstance()->getSettings()->queueMassUpdates;
+
+        $queue = Craft::$app->$queueComponent;
 
         if ($all) {
             $assets = Asset::find()
@@ -51,7 +60,7 @@ class ThumbsController extends Controller
         Console::startProgress($counter, $count, 'Dispatching jobs');
 
         foreach ($assets as $asset) {
-            Craft::$app->queue->push(new GenerateAllThumbs([
+            $queue->push(new GenerateAllThumbs([
                 'assetId' => $asset,
             ]));
 

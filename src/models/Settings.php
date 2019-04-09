@@ -20,4 +20,5 @@ class Settings extends Model
     public $thumbnailsPrefix = '';
     public $thumbnailsBaseUrl = '';
 
+    public $queueMassUpdates = '';
 }

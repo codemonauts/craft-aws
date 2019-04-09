@@ -2,6 +2,7 @@
 
 namespace codemonauts\aws\console\controllers;
 
+use codemonauts\aws\Aws;
 use Craft;
 use codemonauts\aws\jobs\UpdateSearchIndex;
 use craft\helpers\Console;
@@ -23,6 +24,15 @@ class SearchController extends Controller
      */
     public function actionUpdateIndex(): int
     {
+        if (Aws::getInstance()->getSettings()->queueMassUpdates === '') {
+            $this->stderr('No queue for mass updates set!'.PHP_EOL, Console::FG_RED);
+            return ExitCode::OK;
+        }
+
+        $queueComponent = Aws::getInstance()->getSettings()->queueMassUpdates;
+
+        $queue = Craft::$app->$queueComponent;
+
         Craft::$app->getDb()->createCommand()
             ->truncateTable('{{%searchindex}}')
             ->execute();
@@ -38,7 +48,7 @@ class SearchController extends Controller
         Console::startProgress($counter, $count, 'Dispatching jobs');
 
         foreach ($elements as $element) {
-            Craft::$app->queue->push(new UpdateSearchIndex([
+            $queue->push(new UpdateSearchIndex([
                 'id' => $element['id'],
                 'type' => $element['type'],
             ]));

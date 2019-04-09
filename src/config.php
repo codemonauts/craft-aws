@@ -14,4 +14,6 @@ return [
     'thumbnailsBucket' => '',
     'thumbnailsPrefix' => '',
     'thumbnailsBaseUrl' => '',
+
+    'queueMassUpdates' => '',
 ];
