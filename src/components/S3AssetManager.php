@@ -21,12 +21,7 @@ class S3AssetManager extends AssetManager
     private $client;
 
     /**
-     * @var string The real current revision of the resources.
-     */
-    public $currentRevision;
-
-    /**
-     * @var string The processed current revision of the resources.
+     * @var string The current revision of the resources.
      */
     public $revision;
 
@@ -71,12 +66,6 @@ class S3AssetManager extends AssetManager
     public function init()
     {
         $this->client = $this->getClient();
-
-        if (is_callable($this->revision)) {
-            $this->currentRevision = $this->revision();
-        } else {
-            $this->currentRevision = $this->revision;
-        }
 
         $this->basePath = $this->prefix . $this->currentRevision;
         $this->baseUrl = $this->url . $this->basePath;
