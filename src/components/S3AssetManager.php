@@ -2,6 +2,7 @@
 
 namespace codemonauts\aws\components;
 
+use Aws\S3\S3Client;
 use codemonauts\aws\traits\S3Trait;
 use Craft;
 use craft\helpers\FileHelper;
@@ -13,6 +14,11 @@ use yii\base\InvalidConfigException;
 class S3AssetManager extends AssetManager
 {
     use S3Trait;
+
+    /**
+     * @var S3Client The client from the SDK
+     */
+    private $client;
 
     /**
      * @var string The current revision of the resources.
