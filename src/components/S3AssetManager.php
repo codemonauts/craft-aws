@@ -23,7 +23,7 @@ class S3AssetManager extends AssetManager
     /**
      * @var string The current revision of the resources.
      */
-    public $revision;
+    public $currentRevision;
 
     /**
      * @var string The bucket to use for storing the resources.
