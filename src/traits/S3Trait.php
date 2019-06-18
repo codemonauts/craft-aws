@@ -10,26 +10,6 @@ use Aws\S3\S3Client;
 trait S3Trait
 {
     /**
-     * @var S3Client The client from the SDK
-     */
-    private $client;
-
-    /**
-     * @var string The AWS access key to use, empty to use instance role
-     */
-    private $key = '';
-
-    /**
-     * @var string The AWS secret
-     */
-    private $secret = '';
-
-    /**
-     * @var string The AWS region to use for bucket operations
-     */
-    private $region = '';
-
-    /**
      * Copy object on same S3 bucket
      *
      * @param string $bucket      The bucket to work on
