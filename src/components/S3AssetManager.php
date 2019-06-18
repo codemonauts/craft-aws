@@ -21,9 +21,14 @@ class S3AssetManager extends AssetManager
     private $client;
 
     /**
-     * @var string The current revision of the resources.
+     * @var string The real current revision of the resources.
      */
     public $currentRevision;
+
+    /**
+     * @var string The processed current revision of the resources.
+     */
+    public $revision;
 
     /**
      * @var string The bucket to use for storing the resources.
@@ -67,8 +72,10 @@ class S3AssetManager extends AssetManager
     {
         $this->client = $this->getClient();
 
-        if (is_callable($this->currentRevision)) {
-            $this->currentRevision = $this->currentRevision();
+        if (is_callable($this->revision)) {
+            $this->currentRevision = $this->revision();
+        } else {
+            $this->currentRevision = $this->revision;
         }
 
         $this->basePath = $this->prefix . $this->currentRevision;
