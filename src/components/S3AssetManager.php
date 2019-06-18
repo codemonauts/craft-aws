@@ -67,6 +67,10 @@ class S3AssetManager extends AssetManager
     {
         $this->client = $this->getClient();
 
+        if (is_callable($this->currentRevision)) {
+            $this->currentRevision = $this->currentRevision();
+        }
+
         $this->basePath = $this->prefix . $this->currentRevision;
         $this->baseUrl = $this->url . $this->basePath;
 
