@@ -17,12 +17,37 @@ class S3AssetManager extends AssetManager
     /**
      * @var string The current revision of the resources.
      */
-    private $currentRevision;
+    public $currentRevision;
 
     /**
      * @var string The bucket to use for storing the resources.
      */
-    private $bucket;
+    public $bucket;
+
+    /**
+     * @var string The region the bucket is located.
+     */
+    public $region;
+
+    /**
+     * @var string The AWS key to authenticate with. Leave empty for instance roles.
+     */
+    public $key;
+
+    /**
+     * @var string The AWS secret to authenticate with. Leave empty for instance roles.
+     */
+    public $secret;
+
+    /**
+     * @var string An optional prefix for the base path.
+     */
+    public $prefix;
+
+    /**
+     * @var string The base URL.
+     */
+    public $url;
 
     /**
      * @var array published assets
@@ -34,26 +59,10 @@ class S3AssetManager extends AssetManager
      */
     public function init()
     {
-        $config = Craft::$app->getConfig()->getConfigFromFile('aws');
-
-        // Initialize S3Client
-        $this->bucket = $config['resourceBucket'];
-        $this->region = $config['region'];
-        $this->key = $config['key'];
-        $this->secret = $config['secret'];
-
         $this->client = $this->getClient();
 
-        // Get revision
-        $revision = $config['resourceRevision'];
-        if (is_string($revision)) {
-            $this->currentRevision = $revision;
-        } elseif (is_callable($revision)) {
-            $this->currentRevision = $revision();
-        }
-
-        $this->basePath = $config['resourcePrefix'] . $this->currentRevision;
-        $this->baseUrl = $config['resourceBaseUrl'] . $this->basePath;
+        $this->basePath = $this->prefix . $this->currentRevision;
+        $this->baseUrl = $this->url . $this->basePath;
 
         $this->loadPublished();
     }
