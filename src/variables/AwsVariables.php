@@ -10,4 +10,9 @@ class AwsVariables
     {
         return Aws::getInstance()->cloudfront->isMobileBrowser($tabletAsMobile);
     }
+
+    public function getBrowserType()
+    {
+        return Aws::getInstance()->cloudfront->getBrowserType();
+    }
 }
