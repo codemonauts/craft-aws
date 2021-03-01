@@ -121,7 +121,7 @@ class S3AssetManager extends AssetManager
     public function getPublishedUrl($sourcePath, bool $publish = false, $filePath = null)
     {
         if ($publish === true) {
-            list(, $url) = $this->publish($sourcePath);
+            [, $url] = $this->publish($sourcePath);
         } else {
             $url = parent::getPublishedUrl($sourcePath);
         }
@@ -177,7 +177,7 @@ class S3AssetManager extends AssetManager
         $dstFile = $dstDir . '/' . $fileName;
 
         if (!$this->isPublished($dstFile)) {
-            $this->uploadFile($this->bucket, $dstFile, $src, FileHelper::getMimeType($src));
+            $this->uploadFile($this->bucket, $dstFile, $src, $this->_getMimetype($src));
         }
 
         return [$dstFile, $this->baseUrl . "/$dir/$fileName"];
@@ -224,7 +224,7 @@ class S3AssetManager extends AssetManager
             }
 
             if (is_file($from)) {
-                $this->uploadFile($this->bucket, $to, $from, FileHelper::getMimeType($from));
+                $this->uploadFile($this->bucket, $to, $from, $this->_getMimetype($from));
             } else if (!isset($options['recursive']) || $options['recursive']) {
                 $this->uploadDirectory($from, $to, $options);
             }
@@ -233,5 +233,25 @@ class S3AssetManager extends AssetManager
             }
         }
         closedir($handle);
+    }
+
+    /**
+     * Get mime type and fix bugs.
+     *
+     * @param string $src The file path.
+     *
+     * @return string The mime type.
+     * @throws InvalidConfigException
+     */
+    private function _getMimetype($src)
+    {
+        $mimeType = FileHelper::getMimeType($src);
+
+        // Handle invalid SVG mime type reported by PHP (https://bugs.php.net/bug.php?id=79045)
+        if ($mimeType === 'image/svg') {
+            $mimeType =  'image/svg+xml';
+        }
+
+        return (string)$mimeType;
     }
 }
