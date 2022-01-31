@@ -22,7 +22,7 @@ class Cloudfront extends Component
      *
      * @return string|null
      */
-    public function getTraceId()
+    public function getTraceId(): ?string
     {
         return $_SERVER['HTTP_X_AMZN_TRACE_ID'] ?? null;
     }
@@ -32,7 +32,7 @@ class Cloudfront extends Component
      *
      * @return string|null
      */
-    public function getRequestId()
+    public function getRequestId(): ?string
     {
         return $_SERVER['HTTP_X_AMZ_CF_ID'] ?? null;
     }
@@ -44,14 +44,14 @@ class Cloudfront extends Component
      *
      * @return bool
      */
-    public function isMobileBrowser($tabletAsMobile = false): bool
+    public function isMobileBrowser(bool $tabletAsMobile = false): bool
     {
         if (isset($_SERVER['HTTP_CLOUDFRONT_IS_DESKTOP_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_DESKTOP_VIEWER'] === 'true') {
             return false;
         }
 
         if (isset($_SERVER['HTTP_CLOUDFRONT_IS_TABLET_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_TABLET_VIEWER'] === 'true') {
-            return $tabletAsMobile ? true : false;
+            return $tabletAsMobile;
         }
 
         if (isset($_SERVER['HTTP_CLOUDFRONT_IS_MOBILE_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_MOBILE_VIEWER'] === 'true') {

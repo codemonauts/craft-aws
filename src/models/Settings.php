@@ -15,7 +15,7 @@ class Settings extends Model
     public $resourcePrefix = '';
     public $resourceBaseUrl = '';
 
-    public $thumbnailsOnBucket = false;
+    public $thumbnailsEnabled = false;
     public $thumbnailsBucket = '';
     public $thumbnailsPrefix = '';
     public $thumbnailsBaseUrl = '';

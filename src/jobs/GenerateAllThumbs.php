@@ -13,11 +13,14 @@ class GenerateAllThumbs extends BaseJob
     /**
      * @inheritDoc
      */
-    public function execute($queue)
+    public function execute($queue): bool
     {
         $this->setProgress($queue, 1);
 
-        $asset = \Craft::$app->assets->getAssetById($this->assetId);
+        $asset = Craft::$app->assets->getAssetById($this->assetId);
+        if (!$asset) {
+            return false;
+        }
 
         $baseUrl = Aws::getInstance()->getSettings()->thumbnailsBaseUrl;
         $meta = Aws::getInstance()->assets->createAllThumbSizes($asset);
@@ -35,7 +38,7 @@ class GenerateAllThumbs extends BaseJob
     /**
      * @inheritDoc
      */
-    protected function defaultDescription()
+    protected function defaultDescription(): ?string
     {
         return 'Generate all thumbs for asset';
     }

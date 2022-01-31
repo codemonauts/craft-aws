@@ -63,7 +63,7 @@ class S3AssetManager extends AssetManager
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         $this->client = $this->getClient();
 
@@ -76,10 +76,8 @@ class S3AssetManager extends AssetManager
     /**
      * Loads all published resources of the current revision from the bucket.
      */
-    protected function loadPublished()
+    protected function loadPublished(): void
     {
-        // $results = Aws::getInstance()->s3->listObjects($this->bucket, $this->basePath);
-
         $results = $this->listObjects($this->bucket, $this->basePath);
 
         $length = substr_count($this->basePath, '/') + 2;
@@ -190,7 +188,7 @@ class S3AssetManager extends AssetManager
      *
      * @return bool
      */
-    protected function isPublished($dst): bool
+    protected function isPublished(string $dst): bool
     {
         return in_array($dst, $this->published, true);
     }
@@ -204,7 +202,7 @@ class S3AssetManager extends AssetManager
      *
      * @throws InvalidConfigException
      */
-    protected function uploadDirectory($src, $dst, $options)
+    protected function uploadDirectory(string $src, string $dst, array $options): void
     {
         $handle = opendir($src);
         if ($handle === false) {
@@ -243,13 +241,13 @@ class S3AssetManager extends AssetManager
      * @return string The mime type.
      * @throws InvalidConfigException
      */
-    private function _getMimetype($src)
+    private function _getMimetype(string $src): string
     {
         $mimeType = FileHelper::getMimeType($src);
 
         // Handle invalid SVG mime type reported by PHP (https://bugs.php.net/bug.php?id=79045)
         if ($mimeType === 'image/svg') {
-            $mimeType =  'image/svg+xml';
+            $mimeType = 'image/svg+xml';
         }
 
         return (string)$mimeType;

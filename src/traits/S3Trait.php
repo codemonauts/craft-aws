@@ -19,7 +19,7 @@ trait S3Trait
      *
      * @return Result
      */
-    public function copyOnSameBucket($bucket, $sourceKey, $destKey, $contentType): Result
+    public function copyOnSameBucket(string $bucket, string $sourceKey, string $destKey, string $contentType): Result
     {
         return $this->client->copyObject([
             'Bucket' => $bucket,
@@ -38,7 +38,7 @@ trait S3Trait
      *
      * @return Result
      */
-    public function download($bucket, $key, $destination): Result
+    public function download(string $bucket, string $key, string $destination): Result
     {
         return $this->client->getObject([
             'Bucket' => $bucket,
@@ -57,12 +57,12 @@ trait S3Trait
      *
      * @return Result
      */
-    public function uploadBody($bucket, $key, $body, $contentType): Result
+    public function uploadBody(string $bucket, string $key, string $body, string $contentType): Result
     {
         return $this->client->putObject([
             'Bucket' => $bucket,
             'Key' => $key,
-            'Body' => (string)$body,
+            'Body' => $body,
             'ContentType' => $contentType,
         ]);
     }
@@ -77,7 +77,7 @@ trait S3Trait
      *
      * @return Result
      */
-    public function uploadFile($bucket, $key, $source, $contentType): Result
+    public function uploadFile(string $bucket, string $key, string $source, string $contentType): Result
     {
         if (filesize($source) < 500000000) {
             return $this->client->putObject([
@@ -135,7 +135,7 @@ trait S3Trait
      *
      * @return Result
      */
-    public function delete($bucket, $key): Result
+    public function delete(string $bucket, string $key): Result
     {
         return $this->client->deleteObject([
             'Bucket' => $bucket,
@@ -151,7 +151,7 @@ trait S3Trait
      *
      * @return ResultPaginator
      */
-    public function listObjects($bucket, $prefix = ''): ResultPaginator
+    public function listObjects(string $bucket, string $prefix = ''): ResultPaginator
     {
         return $this->client->getPaginator('ListObjects', [
             'Bucket' => $bucket,
@@ -167,7 +167,7 @@ trait S3Trait
      *
      * @return Result|bool
      */
-    public function getObjectInfo($bucket, $key)
+    public function getObjectInfo(string $bucket, string $key)
     {
         try {
             return $this->client->headObject([

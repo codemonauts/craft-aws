@@ -8,6 +8,7 @@ use craft\elements\Asset;
 use craft\helpers\Console;
 use yii\console\{Controller, ExitCode};
 use Craft;
+use yii\helpers\BaseConsole;
 
 /**
  * Generate thumbs of assets.
@@ -24,21 +25,23 @@ class ThumbsController extends Controller
      *
      * @return int
      */
-    public function actionGenerate($all = false, $assetId = null): int
+    public function actionGenerate(bool $all = false, int $assetId = null): int
     {
         if (!Aws::getInstance()->getSettings()->thumbnailsOnBucket) {
-            $this->stderr('Storing thumbnails into a bucket is not enabled!'.PHP_EOL, Console::FG_RED);
+            $this->stderr('Storing thumbnails into a bucket is not enabled!' . PHP_EOL, BaseConsole::FG_RED);
+
             return ExitCode::OK;
         }
 
         if (Aws::getInstance()->getSettings()->queueMassUpdates === '') {
-            $this->stderr('No queue for mass updates set!'.PHP_EOL, Console::FG_RED);
+            $this->stderr('No queue for mass updates set!' . PHP_EOL, BaseConsole::FG_RED);
+
             return ExitCode::OK;
         }
 
-        if ($all === false && $assetId === null)
-        {
-            $this->stderr('You forgot to say what to do!'.PHP_EOL, Console::FG_RED);
+        if ($all === false && $assetId === null) {
+            $this->stderr('You forgot to say what to do!' . PHP_EOL, BaseConsole::FG_RED);
+
             return ExitCode::OK;
         }
 
@@ -69,20 +72,30 @@ class ThumbsController extends Controller
 
         Console::endProgress(true, false);
 
-        $this->stdout('Dispatched '.$count.' jobs.'.PHP_EOL, Console::FG_GREEN);
+        $this->stdout('Dispatched ' . $count . ' jobs.' . PHP_EOL, BaseConsole::FG_GREEN);
+
         return ExitCode::OK;
     }
 
-    public function actionGenerateLive($all = false, $assetId = null): int
+    /**
+     * Generates all thumbs for one or all assets.
+     *
+     * @param bool $all Whether all assets should be processed.
+     * @param int|null $assetId Specify one asset by ID to generate thumbs for.
+     *
+     * @return int
+     */
+    public function actionGenerateLive(bool $all = false, int $assetId = null): int
     {
         if (!Aws::getInstance()->getSettings()->thumbnailsOnBucket) {
-            $this->stderr('Storing thumbnails into a bucket is not enabled!'.PHP_EOL, Console::FG_RED);
+            $this->stderr('Storing thumbnails into a bucket is not enabled!' . PHP_EOL, BaseConsole::FG_RED);
+
             return ExitCode::OK;
         }
 
-        if ($all === false && $assetId === null)
-        {
-            $this->stderr('You forgot to say what to do!'.PHP_EOL, Console::FG_RED);
+        if ($all === false && $assetId === null) {
+            $this->stderr('You forgot to say what to do!' . PHP_EOL, BaseConsole::FG_RED);
+
             return ExitCode::OK;
         }
 
@@ -101,9 +114,13 @@ class ThumbsController extends Controller
 
         Console::startProgress($counter, $count, 'Generating thumbs');
 
-        foreach ($assets as $assetId) {
+        foreach ($assets as $id) {
 
-            $asset = Craft::$app->assets->getAssetById($assetId);
+            $asset = Craft::$app->assets->getAssetById($id);
+            if (!$asset) {
+                $this->stderr('Could not find asset with ID ' . $id . PHP_EOL, BaseConsole::FG_RED);
+                continue;
+            }
 
             $meta = Aws::getInstance()->assets->createAllThumbSizes($asset);
 
@@ -114,15 +131,15 @@ class ThumbsController extends Controller
 
             Craft::$app->cache->set('aws-thumb-' . $asset->id, $cachedMeta, 0);
 
-            unset($asset);
-            unset($meta);
+            unset($asset, $meta);
 
             Console::updateProgress(++$counter, $count);
         }
 
         Console::endProgress(true, false);
 
-        $this->stdout('Generated thumbs for '.$count.' assets.'.PHP_EOL, Console::FG_GREEN);
+        $this->stdout('Generated thumbs for ' . $count . ' assets.' . PHP_EOL, BaseConsole::FG_GREEN);
+
         return ExitCode::OK;
     }
 }

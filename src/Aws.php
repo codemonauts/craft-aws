@@ -16,9 +16,9 @@ use craft\web\twig\variables\CraftVariable;
 /**
  * Class Aws
  *
- * @property S3         $s3         The S3 component
+ * @property S3 $s3 The S3 component
  * @property Cloudfront $cloudfront The Cloudfront component
- * @property Assets     $assets     The assets component
+ * @property Assets $assets The assets component
  *
  * @package codemonauts\aws
  */
@@ -27,7 +27,7 @@ class Aws extends Plugin
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -44,7 +44,7 @@ class Aws extends Plugin
 
         // Register asset thumb event if we should store and serve them from a bucket
         if (self::getInstance()->getSettings()->thumbnailsOnBucket) {
-            Event::on(\craft\services\Assets::class, \craft\services\Assets::EVENT_GET_ASSET_THUMB_URL, function(GetAssetThumbUrlEvent $e) {
+            Event::on(\craft\services\Assets::class, \craft\services\Assets::EVENT_GET_ASSET_THUMB_URL, function (GetAssetThumbUrlEvent $e) {
                 $e->url = $this->assets->getThumbUrl(
                     $e->asset,
                     $e->width,
@@ -55,7 +55,7 @@ class Aws extends Plugin
         }
 
         // Add variables to Twig
-        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $e) {
+        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function (Event $e) {
             /** @var CraftVariable $variable */
             $variable = $e->sender;
             $variable->set('aws', AwsVariables::class);

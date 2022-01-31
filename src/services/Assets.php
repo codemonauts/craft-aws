@@ -38,17 +38,17 @@ class Assets extends Component
      * The thumbnails will allways be generated if not in the cache, even if they already
      * exists on the S3 store.
      *
-     * @param Asset    $asset    The asset to process.
-     * @param int      $width    The width of the thumb.
-     * @param int|null $height   The height of the thumb, when null, it will be the same as $width
-     * @param bool     $generate If the thumb can be generated.
+     * @param Asset $asset The asset to process.
+     * @param int $width The width of the thumb.
+     * @param int|null $height The height of the thumb, when null, it will be the same as $width
+     * @param bool $generate If the thumb can be generated.
      *
      * @return string|null
      * @throws Exception
      * @throws VolumeException
      * @throws VolumeObjectNotFoundException
      */
-    public function getThumbUrl(Asset $asset, int $width, int $height = null, bool $generate = false)
+    public function getThumbUrl(Asset $asset, int $width, int $height = null, bool $generate = false): ?string
     {
         if (isset($this->thumbUrls[$asset->id])) {
             return $this->thumbUrls[$asset->id]['baseUrl'] . "/thumb-{$width}x{$height}.{$this->thumbUrls[$asset->id]['ext']}";

@@ -34,7 +34,7 @@ class S3 extends Component
     /**
      * @inheritdoc
      */
-    public function init()
+    public function init(): void
     {
         $config = Aws::getInstance()->getSettings();
         $this->key = $config->key;
