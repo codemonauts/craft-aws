@@ -5,6 +5,7 @@ namespace codemonauts\aws\traits;
 use Aws\Result;
 use Aws\ResultPaginator;
 use Aws\S3\Exception\S3Exception;
+use Aws\S3\PostObjectV4;
 use Aws\S3\S3Client;
 
 trait S3Trait
@@ -177,6 +178,41 @@ trait S3Trait
         } catch (S3Exception $e) {
             return false;
         }
+    }
+
+    /**
+     * Returns an upload form with signed POST request to upload files to S3.
+     *
+     * @param string $bucket The S3 bucket to store the object.
+     * @param string $key The key to store the object.
+     * @param string $redirect The URL to redirect the browser after successful upload.
+     * @param string $acl The ACL to use for the uploaded object.
+     * @param string $contentType The Content-Type to set for the uploaded object.
+     *
+     * @return \Aws\S3\PostObjectV4
+     */
+    public function getUploadForm(string $bucket, string $key, string $redirect, string $acl, string $contentType): PostObjectV4
+    {
+        $formInputs = [
+            'acl' => $acl,
+            'success_action_redirect' => $redirect,
+            'key' => $key,
+        ];
+
+        $options = [
+            ['acl' => $acl],
+            ['bucket' => $bucket],
+            ['starts-with', '$key', $key],
+            ['starts-with', '$Content-Type', $contentType],
+            ['starts-with', '$success_action_redirect', $redirect],
+        ];
+
+        return new PostObjectV4(
+            $this->client,
+            $bucket,
+            $formInputs,
+            $options
+        );
     }
 
     /**
