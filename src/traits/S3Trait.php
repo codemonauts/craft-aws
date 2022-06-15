@@ -13,9 +13,9 @@ trait S3Trait
     /**
      * Copy object on same S3 bucket
      *
-     * @param string $bucket      The bucket to work on
-     * @param string $sourceKey   Source key of object to copy without leading slash and bucket name
-     * @param string $destKey     Destination key without leading slash
+     * @param string $bucket The bucket to work on
+     * @param string $sourceKey Source key of object to copy without leading slash and bucket name
+     * @param string $destKey Destination key without leading slash
      * @param string $contentType Object's content mime type
      *
      * @return Result
@@ -33,8 +33,8 @@ trait S3Trait
     /**
      * Download object from S3 bucket
      *
-     * @param string $bucket      The source bucket
-     * @param string $key         Source key of object without leading slash
+     * @param string $bucket The source bucket
+     * @param string $key Source key of object without leading slash
      * @param string $destination Path to file to save to
      *
      * @return Result
@@ -51,9 +51,9 @@ trait S3Trait
     /**
      * Upload string as new object to S3 bucket
      *
-     * @param string $bucket      The destination bucket
-     * @param string $key         Destination key without leading slash
-     * @param string $body        String to upload
+     * @param string $bucket The destination bucket
+     * @param string $key Destination key without leading slash
+     * @param string $body String to upload
      * @param string $contentType Object's content mime type
      *
      * @return Result
@@ -71,29 +71,31 @@ trait S3Trait
     /**
      * Upload file as new object to S3 bucket (as multipart when needed)
      *
-     * @param string $bucket      The destination bucket
-     * @param string $key         Destination key without leading slash
-     * @param string $source      Path to source file
-     * @param string $contentType Object's content mime type
+     * @param string $bucket The destination bucket
+     * @param string $key Destination key without leading slash
+     * @param string $source Path to source file
+     * @param array $headers Array of headers to add to the object on upload.
      *
      * @return Result
      */
-    public function uploadFile(string $bucket, string $key, string $source, string $contentType): Result
+    public function uploadFile(string $bucket, string $key, string $source, array $headers = []): Result
     {
-        if (filesize($source) < 500000000) {
-            return $this->client->putObject([
-                'Bucket' => $bucket,
-                'Key' => $key,
-                'SourceFile' => $source,
-                'ContentType' => $contentType,
-            ]);
-        }
-
-        $response = $this->client->createMultipartUpload([
+        $options = array_merge($headers, [
             'Bucket' => $bucket,
             'Key' => $key,
-            'ContentType' => $contentType,
+            'SourceFile' => $source,
         ]);
+
+        if (filesize($source) < 500000000) {
+            return $this->client->putObject($options);
+        }
+
+        $options = array_merge($headers, [
+            'Bucket' => $bucket,
+            'Key' => $key,
+        ]);
+
+        $response = $this->client->createMultipartUpload($options);
 
         $uploadId = $response['UploadId'];
 
@@ -132,7 +134,7 @@ trait S3Trait
      * Delete object from S§ bucket
      *
      * @param string $bucket The S3 bucket
-     * @param string $key    Key of object to delete
+     * @param string $key Key of object to delete
      *
      * @return Result
      */
@@ -161,21 +163,21 @@ trait S3Trait
     }
 
     /**
-     * Get the meta data of an object
+     * Get the metadata of an object
      *
      * @param string $bucket The bucket where the object is located
-     * @param string $key    The key of the object
+     * @param string $key The key of the object
      *
      * @return Result|bool
      */
-    public function getObjectInfo(string $bucket, string $key)
+    public function getObjectInfo(string $bucket, string $key): Result|bool
     {
         try {
             return $this->client->headObject([
                 'Bucket' => $bucket,
                 'Key' => $key,
             ]);
-        } catch (S3Exception $e) {
+        } catch (S3Exception) {
             return false;
         }
     }
@@ -218,9 +220,9 @@ trait S3Trait
     /**
      * Factory S3 client
      *
-     * @return S3Client
+     * @return void
      */
-    private function getClient(): S3Client
+    private function createClient(): void
     {
         $config = [
             'signature' => 'v4',
@@ -235,6 +237,6 @@ trait S3Trait
             ];
         }
 
-        return new S3Client($config);
+        $this->client = new S3Client($config);
     }
 }

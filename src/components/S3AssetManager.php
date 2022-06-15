@@ -6,71 +6,106 @@ use Aws\S3\S3Client;
 use codemonauts\aws\traits\S3Trait;
 use Craft;
 use craft\helpers\FileHelper;
+use craft\web\Application;
 use craft\web\AssetManager;
-use Yii;
 use yii\base\InvalidArgumentException;
 use yii\base\InvalidConfigException;
+use yii\caching\TagDependency;
 
 class S3AssetManager extends AssetManager
 {
     use S3Trait;
 
+    public const CACHE_TAG = 'assetmanager';
+
     /**
      * @var S3Client The client from the SDK
      */
-    private $client;
-
-    /**
-     * @var string The current revision of the resources.
-     */
-    public $currentRevision;
+    private S3Client $client;
 
     /**
      * @var string The bucket to use for storing the resources.
      */
-    public $bucket;
+    public string $bucket;
 
     /**
      * @var string The region the bucket is located.
      */
-    public $region;
+    public string $region;
 
     /**
      * @var string The AWS key to authenticate with. Leave empty for instance roles.
      */
-    public $key;
+    public string $key;
 
     /**
      * @var string The AWS secret to authenticate with. Leave empty for instance roles.
      */
-    public $secret;
+    public string $secret;
 
     /**
      * @var string An optional prefix for the base path.
      */
-    public $prefix;
+    public string $prefix;
 
     /**
      * @var string The base URL.
      */
-    public $url;
+    public string $url;
 
     /**
      * @var array published assets
      */
-    private $published = [];
+    private array $publishedOnBucket = [];
+
+    private bool $dirtyList = false;
 
     /**
      * @inheritDoc
      */
     public function init(): void
     {
-        $this->client = $this->getClient();
+        $this->createClient();
 
-        $this->basePath = $this->prefix . $this->currentRevision;
+        $generalConfig = Craft::$app->getConfig()->getGeneral();
+        if ($generalConfig->buildId) {
+            $this->basePath = trim($this->prefix, '/') . '/' . $generalConfig->buildId;
+        } else {
+            $this->basePath = trim($this->prefix, '/');
+        }
+
         $this->baseUrl = $this->url . $this->basePath;
 
         $this->loadPublished();
+
+        Craft::$app->on(Application::EVENT_AFTER_REQUEST, function() {
+            if ($this->dirtyList) {
+                $this->storePublished();
+            }
+        }, null, false);
+    }
+
+    /**
+     * Stores the current list of published assets to the cache.
+     */
+    public function storePublished(): void
+    {
+        if (!$this->dirtyList) {
+            Craft::info('Nothing changed.', 'S3AssetManager');
+            return;
+        }
+
+        $cacheKey = self::CACHE_TAG . ':published:' . $this->basePath;
+        $list = array_unique($this->publishedOnBucket);
+
+        Craft::$app->getCache()->set(
+            $cacheKey,
+            $list,
+            31536000,
+            new TagDependency(['tags' => [self::CACHE_TAG]]),
+        );
+
+        Craft::info('Cache updated.', 'S3AssetManager');
     }
 
     /**
@@ -78,75 +113,29 @@ class S3AssetManager extends AssetManager
      */
     protected function loadPublished(): void
     {
-        $results = $this->listObjects($this->bucket, $this->basePath);
+        $cacheKey = self::CACHE_TAG . ':published:' . $this->basePath;
+        $list = Craft::$app->getCache()->get($cacheKey);
 
-        $length = substr_count($this->basePath, '/') + 2;
+        if (!$list) {
+            Craft::info('Cache not found.', 'S3AssetManager');
+            $list = [];
+            $results = $this->listObjects($this->bucket, $this->basePath);
 
-        foreach ($results as $result) {
-            if (isset($result['Contents'])) {
-                foreach ($result['Contents'] as $object) {
-                    $parts = explode('/', $object['Key']);
-                    $hash = implode('/', array_slice($parts, 0, $length));
-                    if (!in_array($hash, $this->published, true)) {
-                        $this->published[] = $hash;
-                    }
-                    if (!in_array($object['Key'], $this->published, true)) {
-                        $this->published[] = $object['Key'];
+            foreach ($results as $result) {
+                if (isset($result['Contents'])) {
+                    foreach ($result['Contents'] as $object) {
+                        $key = substr($object['Key'], 0, strrpos($object['Key'], '/'));
+                        $list[] = $key;
+                        $list[] = $object['Key'];
                     }
                 }
             }
-        }
-    }
 
-    /**
-     * @inheritDoc
-     */
-    protected function hash($path)
-    {
-        if (is_callable($this->hashCallback)) {
-            return call_user_func($this->hashCallback, $path);
+            $list = array_unique($list);
+            $this->dirtyList = true;
         }
 
-        $dir = is_file($path) ? dirname($path) : $path;
-        $alias = Craft::alias($dir);
-
-        return sprintf('%x', crc32($alias));
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getPublishedUrl($sourcePath, bool $publish = false, $filePath = null)
-    {
-        if ($publish === true) {
-            [, $url] = $this->publish($sourcePath);
-        } else {
-            $url = parent::getPublishedUrl($sourcePath);
-        }
-
-        if ($filePath !== null) {
-            $url .= '/' . $filePath;
-        }
-
-        return $url;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function publish($path, $options = []): array
-    {
-        $path = Yii::getAlias($path);
-
-        if (!is_string($path) || ($src = realpath($path)) === false) {
-            throw new InvalidArgumentException("The file or directory to be published does not exist: $path");
-        }
-
-        if (is_file($src)) {
-            return $this->publishFile($src);
-        }
-
-        return $this->publishDirectory($src, $options);
+        $this->publishedOnBucket = $list;
     }
 
     /**
@@ -155,7 +144,7 @@ class S3AssetManager extends AssetManager
     protected function publishDirectory($src, $options): array
     {
         $dir = $this->hash($src);
-        $dst = $this->basePath . DIRECTORY_SEPARATOR . $dir;
+        $dst = $this->basePath . '/' . $dir;
 
         if (!empty($options['forceCopy']) || ($this->forceCopy && !isset($options['forceCopy'])) || !$this->isPublished($dst)) {
             $this->uploadDirectory($src, $dst, $options);
@@ -175,10 +164,43 @@ class S3AssetManager extends AssetManager
         $dstFile = $dstDir . '/' . $fileName;
 
         if (!$this->isPublished($dstFile)) {
-            $this->uploadFile($this->bucket, $dstFile, $src, $this->_getMimetype($src));
+            Craft::info('Upload file "'.$dstFile.'"', 'S3AssetManager');
+            $this->uploadFile($this->bucket, $dstFile, $src, [
+                'ContentType' => $this->_getMimetype($src),
+                'CacheControl' => 'max-age=31536000'
+            ]);
+            $this->publishedOnBucket[] = $dstFile;
+            $this->publishedOnBucket[] = $dstDir;
+            $this->dirtyList = true;
         }
 
-        return [$dstFile, $this->baseUrl . "/$dir/$fileName"];
+        return [$dstFile, $this->baseUrl . '/' . $dir . '/' . $fileName];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getPublishedUrl($path, bool $publish = false, ?string $filePath = null): string|false
+    {
+        if ($publish === true) {
+            [, $url] = $this->publish($path);
+        } else {
+            $url = parent::getPublishedUrl($path);
+        }
+
+        if ($filePath !== null) {
+            $url .= '/' . $filePath;
+        }
+
+        return $url;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getAssetUrl($bundle, $asset, $appendTimestamp = null): string
+    {
+        return $this->getActualAssetUrl($bundle, $asset);
     }
 
     /**
@@ -188,9 +210,9 @@ class S3AssetManager extends AssetManager
      *
      * @return bool
      */
-    protected function isPublished(string $dst): bool
+    private function isPublished(string $dst): bool
     {
-        return in_array($dst, $this->published, true);
+        return in_array($dst, $this->publishedOnBucket, true);
     }
 
     /**
@@ -202,12 +224,18 @@ class S3AssetManager extends AssetManager
      *
      * @throws InvalidConfigException
      */
-    protected function uploadDirectory(string $src, string $dst, array $options): void
+    private function uploadDirectory(string $src, string $dst, array $options): void
     {
         $handle = opendir($src);
         if ($handle === false) {
             throw new InvalidArgumentException("Unable to open directory: $src");
         }
+
+        if ($this->isPublished($dst)) {
+            return;
+        }
+
+        Craft::info('Destination not found in cache: '.$dst, 'S3AssetManager');
 
         while (($file = readdir($handle)) !== false) {
             if ($file === '.' || $file === '..') {
@@ -216,21 +244,30 @@ class S3AssetManager extends AssetManager
 
             $from = $src . DIRECTORY_SEPARATOR . $file;
             $to = $dst . '/' . $file;
-
-            if (isset($options['beforeCopy']) && !call_user_func($options['beforeCopy'], $from, $to)) {
-                continue;
-            }
+            $this->publishedOnBucket[] = $dst;
 
             if (is_file($from)) {
-                $this->uploadFile($this->bucket, $to, $from, $this->_getMimetype($from));
+                if (!$this->isPublished($to)) {
+                    Craft::info('Upload file "'.$to.'"', 'S3AssetManager');
+                    $this->uploadFile($this->bucket, $to, $from, [
+                        'ContentType' => $this->_getMimetype($from),
+                        'CacheControl' => 'max-age=31536000',
+                    ]);
+                    $this->publishedOnBucket[] = $to;
+                }
             } else if (!isset($options['recursive']) || $options['recursive']) {
                 $this->uploadDirectory($from, $to, $options);
-            }
-            if (isset($options['afterCopy'])) {
-                call_user_func($options['afterCopy'], $from, $to);
+                $this->publishedOnBucket[] = $to;
             }
         }
         closedir($handle);
+
+        $this->dirtyList = true;
+
+        // If we are hit after request, we have to store the updated list for ourselves.
+        if (Craft::$app->state === Application::STATE_SENDING_RESPONSE) {
+            $this->storePublished();
+        }
     }
 
     /**

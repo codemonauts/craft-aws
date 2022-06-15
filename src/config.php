@@ -1,14 +1,11 @@
 <?php
 
 return [
-    'key' => '',
-    'secret' => '',
-    'region' => '',
-
-    'thumbnailsOnBucket' => false,
-    'thumbnailsBucket' => '',
-    'thumbnailsPrefix' => '',
-    'thumbnailsBaseUrl' => '',
-
-    'queueMassUpdates' => '',
+    $assetsOnBucket = false,
+    $assetsBucket = '',
+    $assetsRegion = '',
+    $assetsKey = '',
+    $assetsSecret = '',
+    $assetsPrefix = '',
+    $assetsBaseUrl = '',
 ];

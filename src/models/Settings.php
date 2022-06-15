@@ -6,19 +6,11 @@ use craft\base\Model;
 
 class Settings extends Model
 {
-    public $key = '';
-    public $secret = '';
-    public $region = '';
-
-    public $resourceRevision = '';
-    public $resourceBucket = '';
-    public $resourcePrefix = '';
-    public $resourceBaseUrl = '';
-
-    public $thumbnailsOnBucket = false;
-    public $thumbnailsBucket = '';
-    public $thumbnailsPrefix = '';
-    public $thumbnailsBaseUrl = '';
-
-    public $queueMassUpdates = '';
+    public bool $assetsOnBucket = false;
+    public string $assetsBucket = '';
+    public string $assetsRegion = '';
+    public string $assetsKey = '';
+    public string $assetsSecret = '';
+    public string $assetsPrefix = '';
+    public string $assetsBaseUrl = '';
 }

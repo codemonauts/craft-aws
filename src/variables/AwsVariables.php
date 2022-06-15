@@ -8,11 +8,16 @@ class AwsVariables
 {
     public function isMobileBrowser(bool $tabletAsMobile = false): bool
     {
-        return Aws::getInstance()->cloudfront->isMobileBrowser($tabletAsMobile);
+        return Aws::$plugin->cloudfront->isMobileBrowser($tabletAsMobile);
     }
 
     public function getBrowserType(): string
     {
-        return Aws::getInstance()->cloudfront->getBrowserType();
+        return Aws::$plugin->cloudfront->getBrowserType();
+    }
+
+    public function getMobileOs(): string
+    {
+        return Aws::$plugin->cloudfront->getMobileOs();
     }
 }

@@ -1,0 +1,84 @@
+{% import "_includes/forms" as forms %}
+
+<h2>Settings for the asset resources</h2>
+
+{{ forms.booleanMenu({
+    label: "Enable assets on bucket"|t("aws"),
+    id: 'assetsOnBucket',
+    name: 'assetsOnBucket',
+    instructions: ""|t("aws"),
+    value: settings.assetsOnBucket,
+    suggestEnvVars: true,
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Bucket"|t("aws"),
+    id: 'assetsBucket',
+    name: 'assetsBucket',
+    instructions: ""|t("aws"),
+    value: settings.assetsBucket,
+    suggestEnvVars: true,
+    type: 'text',
+    errors: settings.getErrors('assetsBucket'),
+    required: true
+}) }}
+
+{{ forms.autosuggestField({
+    label: "AWS region"|t("aws"),
+    id: 'assetsRegion',
+    name: 'assetsRegion',
+    instructions: ""|t("aws"),
+    value: settings.assetsRegion,
+    suggestEnvVars: true,
+    type: 'text',
+    errors: settings.getErrors('assetsRegion'),
+    required: true
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Access Key"|t("aws"),
+    id: 'assetsKey',
+    name: 'assetsKey',
+    instructions: ""|t("aws"),
+    value: settings.assetsKey,
+    suggestEnvVars: true,
+    type: 'text',
+    errors: settings.getErrors('assetsKey'),
+    required: true
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Access Secret"|t("aws"),
+    id: 'assetsSecret',
+    name: 'assetsSecret',
+    instructions: ""|t("aws"),
+    value: settings.assetsSecret,
+    suggestEnvVars: true,
+    type: 'text',
+    errors: settings.getErrors('assetsSecret'),
+    required: true
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Prefix"|t("aws"),
+    id: 'assetsPrefix',
+    name: 'assetsPrefix',
+    instructions: ""|t("aws"),
+    value: settings.assetsPrefix,
+    suggestEnvVars: true,
+    type: 'text',
+    errors: settings.getErrors('assetsPrefix'),
+    required: true
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Base URL"|t("aws"),
+    id: 'assetsBaseUrl',
+    name: 'assetsBaseUrl',
+    instructions: ""|t("aws"),
+    value: settings.assetsBaseUrl,
+    suggestEnvVars: true,
+    type: 'text',
+    errors: settings.getErrors('assetsBaseUrl'),
+    required: true
+}) }}

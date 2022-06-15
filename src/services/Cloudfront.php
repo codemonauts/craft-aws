@@ -86,4 +86,22 @@ class Cloudfront extends Component
 
         return 'Unknown';
     }
+
+    /**
+     * Returns the mobile operating system of the request
+     *
+     * @return string
+     */
+    public function getMobileOs(): string
+    {
+        if (isset($_SERVER['HTTP_CLOUDFRONT_IS_IOS_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_IOS_VIEWER'] === 'true') {
+            return 'iOS';
+        }
+
+        if (isset($_SERVER['HTTP_CLOUDFRONT_IS_ANDROID_VIEWER']) && $_SERVER['HTTP_CLOUDFRONT_IS_ANDROID_VIEWER'] === 'true') {
+            return 'Android';
+        }
+
+        return 'Unknown';
+    }
 }

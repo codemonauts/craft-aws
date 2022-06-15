@@ -1,12 +1,29 @@
 # Craft AWS Plugin Changelog
 
+## 2.0.0 - 2022-06-15
+
+### Added
+
+- Craft CMS 4 compatibility.
+
+### Changed
+
+- Requires Craft CMS >= 4.0
+- Uses the General Config `buildId` for versioning the asset paths (if set).
+
+### Removed
+
+- Storing thumbnails on bucket: With Craft 4 the thumbnails for the CP are generated and stored the same way as every asset transformation. So no need for a special function anymore.
+
 ## 1.0.0-beta.2 - 2020-03-01
 
 ### Added
+
 - Console command to generate thumbs without job/queues
 - Config option for queue name for all mass updates (e.g. thumbs generating)
 
 ### Fixed
+
 - If resourceRevision was a clousure, an error occured
 - Fix AssetManager by adding S3 functions as trait
 - Fix cached path of thumbnails
@@ -15,4 +32,5 @@
 ## 1.0.0-beta.1 - 2019-04-06
 
 ### Added
+
 - Initial release

@@ -2,28 +2,38 @@
 
 namespace codemonauts\aws;
 
+use codemonauts\aws\components\S3AssetManager;
 use codemonauts\aws\models\Settings;
-use codemonauts\aws\services\Assets;
 use codemonauts\aws\services\Cloudfront;
 use codemonauts\aws\services\S3;
 use codemonauts\aws\variables\AwsVariables;
 use craft\base\Plugin;
 use Craft;
-use craft\events\GetAssetThumbUrlEvent;
+use craft\helpers\App;
 use yii\base\Event;
 use craft\web\twig\variables\CraftVariable;
 
 /**
- * Class Aws
- *
  * @property S3 $s3 The S3 component
  * @property Cloudfront $cloudfront The Cloudfront component
- * @property Assets $assets The assets component
- *
- * @package codemonauts\aws
  */
 class Aws extends Plugin
 {
+    /**
+     * @var \codemonauts\aws\Aws
+     */
+    public static Aws $plugin;
+
+    /**
+     * @var \codemonauts\aws\models\Settings|null
+     */
+    public static ?Settings $settings;
+
+    /**
+     * @inheritDoc
+     */
+    public bool $hasCpSettings = true;
+
     /**
      * @inheritDoc
      */
@@ -31,33 +41,36 @@ class Aws extends Plugin
     {
         parent::init();
 
+        self::$plugin = $this;
+
+        self::$settings = self::$plugin->getSettings();
+
         // Add components
         $this->setComponents([
             'cloudfront' => Cloudfront::class,
-            'assets' => Assets::class,
             's3' => S3::class,
         ]);
 
-        if (Craft::$app->request->getIsConsoleRequest()) {
-            $this->controllerNamespace = 'codemonauts\aws\console\controllers';
-        }
-
-        // Register asset thumb event if we should store and serve them from a bucket
-        if (self::getInstance()->getSettings()->thumbnailsOnBucket) {
-            Event::on(\craft\services\Assets::class, \craft\services\Assets::EVENT_GET_ASSET_THUMB_URL, function (GetAssetThumbUrlEvent $e) {
-                $e->url = $this->assets->getThumbUrl(
-                    $e->asset,
-                    $e->width,
-                    $e->height,
-                    $e->generate
-                );
-            });
+        // Register asset manager if enabled
+        if (self::$settings->assetsOnBucket) {
+            $componentConfig = [
+                'assetManager' => [
+                    'class' => S3AssetManager::class,
+                    'bucket' => App::parseEnv(self::$settings->assetsBucket),
+                    'region' => App::parseEnv(self::$settings->assetsRegion),
+                    'key' => App::parseEnv(self::$settings->assetsKey),
+                    'secret' => App::parseEnv(self::$settings->assetsSecret),
+                    'prefix' => App::parseEnv(self::$settings->assetsPrefix),
+                    'url' => App::parseEnv(self::$settings->assetsBaseUrl),
+                ],
+            ];
+            Craft::$app->setComponents($componentConfig);
         }
 
         // Add variables to Twig
-        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function (Event $e) {
+        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function (Event $event) {
             /** @var CraftVariable $variable */
-            $variable = $e->sender;
+            $variable = $event->sender;
             $variable->set('aws', AwsVariables::class);
         });
     }
@@ -65,8 +78,19 @@ class Aws extends Plugin
     /**
      * @inheritdoc
      */
-    protected function createSettingsModel()
+    protected function createSettingsModel(): Settings
     {
         return new Settings();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function settingsHtml(): ?string
+    {
+        return Craft::$app->getView()->renderTemplate('aws/settings', [
+                'settings' => $this->getSettings(),
+            ]
+        );
     }
 }
