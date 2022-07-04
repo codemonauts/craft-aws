@@ -1,5 +1,11 @@
 # Craft AWS Plugin Changelog
 
+## 2.0.1 - 2022-07-04
+
+### Fixed
+
+- Fixed boolean environment suggestions in settings.
+
 ## 2.0.0 - 2022-06-15
 
 ### Added
