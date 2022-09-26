@@ -1,5 +1,11 @@
 # Craft AWS Plugin Changelog
 
+## 2.1.0 - 2022-09-26
+
+### Added
+
+- `\codemonauts\aws\services\Cloudfront::invalidate() ` to create invalidation requests for Cloudfront.
+
 ## 2.0.1 - 2022-07-04
 
 ### Fixed

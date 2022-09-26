@@ -82,3 +82,43 @@
     errors: settings.getErrors('assetsBaseUrl'),
     required: true
 }) }}
+
+<hr>
+
+<h2>Settings for Cloudfront functions</h2>
+
+{{ forms.autosuggestField({
+    label: "Access Key"|t("aws"),
+    id: 'cfKey',
+    name: 'cfKey',
+    instructions: ""|t("aws"),
+    value: settings.cfKey,
+    suggestEnvVars: true,
+    type: 'text',
+    errors: settings.getErrors('cfKey'),
+    required: true
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Access Secret"|t("aws"),
+    id: 'cfSecret',
+    name: 'cfSecret',
+    instructions: ""|t("aws"),
+    value: settings.cfSecret,
+    suggestEnvVars: true,
+    type: 'text',
+    errors: settings.getErrors('cfSecret'),
+    required: true
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Default distribution ID"|t("aws"),
+    id: 'cfDefaultDistributionId',
+    name: 'cfDefaultDistributionId',
+    instructions: ""|t("aws"),
+    value: settings.cfDefaultDistributionId,
+    suggestEnvVars: true,
+    type: 'text',
+    errors: settings.getErrors('cfDefaultDistributionId'),
+    required: false
+}) }}

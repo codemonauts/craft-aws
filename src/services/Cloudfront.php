@@ -2,11 +2,41 @@
 
 namespace codemonauts\aws\services;
 
+use Aws\CloudFront\CloudFrontClient;
+use Aws\Exception\AwsException;
+use codemonauts\aws\Aws;
+use Exception;
 use yii\base\Component;
 use Craft;
+use yii\base\InvalidConfigException;
 
 class Cloudfront extends Component
 {
+    /**
+     * @var string The AWS access key to use, empty to use instance role
+     */
+    private string $key = '';
+
+    /**
+     * @var string The AWS secret
+     */
+    private string $secret = '';
+
+    /**
+     * @var string The default Cloudfront distribution ID to use.
+     */
+    private string $defaultDistributionId = '';
+
+    /**
+     * @inerhitDoc
+     */
+    public function init()
+    {
+        $this->key = Aws::$settings->cfKey;
+        $this->secret = Aws::$settings->cfSecret;
+        $this->defaultDistributionId = Aws::$settings->cfDefaultDistributionId;
+    }
+
     /**
      * Returns whether the requests came from Cloudfront
      *
@@ -103,5 +133,67 @@ class Cloudfront extends Component
         }
 
         return 'Unknown';
+    }
+
+    /**
+     * Creates an invalidation request for paths.
+     *
+     * @param array|string $paths Paths to invalidate.
+     * @param string|null $distributionId Optional distribution ID to use. Otherwise, the default distribution ID from the settings is used.
+     *
+     * @return bool|string The ID of the invalidation or false on errors.
+     * @throws \craft\errors\SiteNotFoundException
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function invalidate(array|string $paths, ?string $distributionId): bool|string
+    {
+        if (is_string($paths)) {
+            $paths = [$paths];
+        }
+
+        if ($distributionId === null) {
+            $distributionId = $this->defaultDistributionId;
+        }
+
+        if ($distributionId === '') {
+            throw new InvalidConfigException('No Cloudfront distribution ID set.');
+        }
+
+        $callerReference = md5(Craft::$app->getSites()->getCurrentSite()->getBaseUrl() . microtime());
+
+        $config = [
+            'version' => 'latest',
+            'region' => 'us-east-1',
+        ];
+
+        if (!empty($this->key)) {
+            $config['credentials'] = [
+                'key' => $this->key,
+                'secret' => $this->secret,
+            ];
+        }
+
+        $client = new CloudFrontClient($config);
+
+        try {
+            $result = $client->createInvalidation([
+                'DistributionId' => $distributionId,
+                'InvalidationBatch' => [
+                    'CallerReference' => $callerReference,
+                    'Paths' => [
+                        'Items' => $paths,
+                        'Quantity' => count($paths),
+                    ],
+                ],
+            ]);
+
+            if ($result['@metadata']['statusCode'] !== 201) {
+                return false;
+            }
+
+            return $result['Invalidation']['Id'];
+        } catch (AwsException $e) {
+            throw new Exception($e->getAwsErrorMessage());
+        }
     }
 }

@@ -13,4 +13,8 @@ class Settings extends Model
     public string $assetsSecret = '';
     public string $assetsPrefix = '';
     public string $assetsBaseUrl = '';
+
+    public string $cfKey = '';
+    public string $cfSecret = '';
+    public string $cfDefaultDistributionId = '';
 }
