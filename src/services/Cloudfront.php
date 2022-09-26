@@ -7,6 +7,7 @@ use Aws\Exception\AwsException;
 use codemonauts\aws\Aws;
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\helpers\App;
 use Exception;
 use yii\base\Component;
 use Craft;
@@ -34,9 +35,9 @@ class Cloudfront extends Component
      */
     public function init()
     {
-        $this->key = Aws::$settings->cfKey;
-        $this->secret = Aws::$settings->cfSecret;
-        $this->defaultDistributionId = Aws::$settings->cfDefaultDistributionId;
+        $this->key = App::parseEnv(Aws::$settings->cfKey);
+        $this->secret = App::parseEnv(Aws::$settings->cfSecret);
+        $this->defaultDistributionId = App::parseEnv(Aws::$settings->cfDefaultDistributionId);
     }
 
     /**
