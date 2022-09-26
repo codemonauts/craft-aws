@@ -5,6 +5,8 @@ namespace codemonauts\aws\services;
 use Aws\CloudFront\CloudFrontClient;
 use Aws\Exception\AwsException;
 use codemonauts\aws\Aws;
+use craft\base\Element;
+use craft\base\ElementInterface;
 use Exception;
 use yii\base\Component;
 use Craft;
@@ -136,6 +138,39 @@ class Cloudfront extends Component
     }
 
     /**
+     * Creates an invalidation request for all paths.
+     *
+     * @param string|null $distributionId Optional distribution ID to use. Otherwise, the default distribution ID from the settings is used.
+     *
+     * @return bool|string
+     * @throws \craft\errors\SiteNotFoundException
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function invalidateAll(?string $distributionId = null)
+    {
+        return $this->invalidatePath(['/*'], $distributionId);
+    }
+
+    /**
+     * Creates an invalidation request for the given element.
+     *
+     * @param \craft\base\Element $element The element with a URI to invalidate.
+     * @param string|null $distributionId Optional distribution ID to use. Otherwise, the default distribution ID from the settings is used.
+     *
+     * @return bool|string
+     * @throws \craft\errors\SiteNotFoundException
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function invalidateElement(Element $element, ?string $distributionId = null)
+    {
+        if ($element->uri === null) {
+            return false;
+        }
+
+        return $this->invalidatePath([$element->getUrl()], $distributionId);
+    }
+
+    /**
      * Creates an invalidation request for paths.
      *
      * @param array|string $paths Paths to invalidate.
@@ -145,7 +180,7 @@ class Cloudfront extends Component
      * @throws \craft\errors\SiteNotFoundException
      * @throws \yii\base\InvalidConfigException
      */
-    public function invalidate(array|string $paths, ?string $distributionId): bool|string
+    public function invalidatePath(array|string $paths, ?string $distributionId = null): bool|string
     {
         if (is_string($paths)) {
             $paths = [$paths];
