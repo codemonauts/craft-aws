@@ -28,7 +28,7 @@ class S3 extends Component
     /**
      * @var string The AWS region to use for bucket operations
      */
-    private string $region = '';
+    private string $region = 'us-east-1';
 
     /**
      * @inheritDoc
