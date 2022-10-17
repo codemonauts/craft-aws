@@ -1,7 +1,7 @@
 {
   "name": "codemonauts/craft-aws",
   "description": "Plugin providing components and function to run Craft CMS in a high-available AWS environments.",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "type": "craft-plugin",
   "keywords": [
     "craft",

@@ -1,5 +1,11 @@
 # Craft AWS Plugin Changelog
 
+## 2.1.1 - 2022-10-17
+
+### Added
+
+- `\codemonauts\aws\services\S3::setCredentials() ` to set credentials for the next S3 operation.
+
 ## 2.1.0 - 2022-09-26
 
 ### Added

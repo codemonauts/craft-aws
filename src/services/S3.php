@@ -29,4 +29,40 @@ class S3 extends Component
      * @var string The AWS region to use for bucket operations
      */
     private string $region = '';
+
+    /**
+     * @inheritDoc
+     */
+    public function init()
+    {
+        $this->createClient();
+    }
+
+    /**
+     * Sets the credentials and region for the S3 client.
+     *
+     * @param string|null $key
+     * @param string|null $secret
+     * @param string|null $region
+     *
+     * @return \codemonauts\aws\services\S3
+     */
+    public function setCredentials(?string $key = null, ?string $secret = null, ?string $region = null): self
+    {
+        if ($key !== null) {
+            $this->key = $key;
+        }
+
+        if ($secret !== null) {
+            $this->secret = $secret;
+        }
+
+        if ($region !== null) {
+            $this->region = $region;
+        }
+
+        $this->createClient();
+
+        return $this;
+    }
 }
