@@ -1,5 +1,11 @@
 # Craft AWS Plugin Changelog
 
+## 2.1.3 - 2022-11-18
+
+### Fixed
+
+- Fixed version number.
+
 ## 2.1.2 - 2022-11-18
 
 ### Fixed
