@@ -6,7 +6,7 @@ use craft\base\Model;
 
 class Settings extends Model
 {
-    public bool $assetsOnBucket = false;
+    public string $assetsOnBucket = '';
     public string $assetsBucket = '';
     public string $assetsRegion = '';
     public string $assetsKey = '';

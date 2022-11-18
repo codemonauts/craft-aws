@@ -52,7 +52,7 @@ class Aws extends Plugin
         ]);
 
         // Register asset manager if enabled
-        if (self::$settings->assetsOnBucket) {
+        if (App::parseBooleanEnv(self::$settings->assetsOnBucket)) {
             $componentConfig = [
                 'assetManager' => [
                     'class' => S3AssetManager::class,
