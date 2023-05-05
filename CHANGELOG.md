@@ -1,5 +1,11 @@
 # Craft AWS Plugin Changelog
 
+## 2.1.4 - 2023-05-05
+
+### Fixed
+
+- Some javascript are identified as java when determining the mime type. So we don't trust the answer and check the extension then. 
+
 ## 2.1.3 - 2022-11-18
 
 ### Fixed

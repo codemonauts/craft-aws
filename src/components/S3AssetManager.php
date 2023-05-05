@@ -282,9 +282,9 @@ class S3AssetManager extends AssetManager
     {
         $mimeType = FileHelper::getMimeType($src);
 
-        // Handle invalid SVG mime type reported by PHP (https://bugs.php.net/bug.php?id=79045)
-        if ($mimeType === 'image/svg') {
-            $mimeType = 'image/svg+xml';
+        // Don't trust the following mime types
+        if ($mimeType === 'text/x-java') {
+            $mimeType = FileHelper::getMimeTypeByExtension($src) ?? $mimeType;
         }
 
         return (string)$mimeType;
